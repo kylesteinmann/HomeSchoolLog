@@ -1,0 +1,84 @@
+{% load bootstrap5 %}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>{% block title %}Home School Logger{% endblock %}</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    main {
+      flex: 1;
+    }
+
+    .footer {
+      background: #f8f9fa;
+    }
+  </style>
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
+        aria-haspopup="true" aria-expanded="false">
+        <span class="navbar-toggler-icon"></span>
+      </a>
+      <div class="dropdown-menu dropdown-menu-left" aria-labelledby="navbarDropdown">
+        <a class="dropdown-item" href="#">Dashboard</a>
+        <a class="dropdown-item" href="#">Orders</a>
+        <a class="dropdown-item" href="#">Products</a>
+        <a class="dropdown-item" href="#">Customers</a>
+        <a class="dropdown-item" href="#">Reports</a>
+        <a class="dropdown-item" href="#">Integrations</a>
+      </div>
+    </div>
+    <a class="navbar-brand" href="#">Home School Logger</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ml-auto d-flex align-items-center">
+        {% if user.is_authenticated %}
+        <li class="nav-item">
+          <a class="nav-link" href="">Welcome, {{ user }}!</a>
+        </li>
+
+        <li class="nav-item">
+          <form id="logout-form" action="{% url 'base:logout' %}" method="post" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="nav-link btn btn-link" style="padding:0;">Logout</button>
+          </form>
+        </li>
+        {% endif %}
+      </ul>
+    </div>
+  </nav>
+
+  <main class="container mt-5">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer mt-auto py-3 text-center">
+    <div class="container">
+      <p>&copy; 2024 My Site</p>
+    </div>
+  </footer>
+</body>
+
+</html>
