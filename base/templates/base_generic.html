@@ -35,12 +35,16 @@
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     {% if user.is_authenticated %}
     <div class="nav-item dropdown">
+
       <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
         aria-haspopup="true" aria-expanded="false">
         <span class="navbar-toggler-icon"></span>
       </a>
+
       <div class="dropdown-menu dropdown-menu-left" aria-labelledby="navbarDropdown">
+        {%if profile_info%}
         <a class="dropdown-item" href="#">Add to Log</a>
+        {%endif %}
         <a class="dropdown-item" href="{% url 'base:logout' %}">Logout</a>
       </div>
     </div>
@@ -55,7 +59,7 @@
     <div class="collapse navbar-collapse d-flex justify-content-end align-items-center" id="navbarNav">
       {% if user.is_authenticated %}
       <p class="nav-item m-0">
-        Welcome, {{ user }}!
+        Welcome, {{profile_info.first_name}} {{profile_info.last_name}}!
       </p>
       {% endif %}
     </div>
