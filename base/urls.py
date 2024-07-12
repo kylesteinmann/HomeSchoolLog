@@ -4,7 +4,8 @@ from .views import (
     CustomLogoutView, 
     SignUpView, 
     HomeView,
-    CreateProfileView
+    CreateProfileView,
+    ProfileView
 )
 
 app_name = 'base'
@@ -14,5 +15,6 @@ urlpatterns = [
     path('login/', CustomLoginView.as_view(), name='login'),
     path('logout/', CustomLogoutView.as_view(), name='logout'),
     path('signup/', SignUpView.as_view(), name='signup'),
-    path('create_profile/', CreateProfileView.as_view(), name ='create_profile')
+    path('create_profile/', CreateProfileView.as_view(), name ='create_profile'),
+    path('profile/', ProfileView.as_view(), name='profile')
 ]
