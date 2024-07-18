@@ -46,6 +46,7 @@
       <div class="dropdown-menu dropdown-menu-left" aria-labelledby="navbarDropdown">
         {%if profile_info%}
         <a class="dropdown-item" href="{% url 'base:profile' %}">Profile</a>
+        <a class="dropdown-item" href="{% url 'logger:logs' %}">Student Logs</a>
         <a class="dropdown-item" href="#">Add to Log</a>
         {%endif %}
         <a class="dropdown-item" href="{% url 'base:logout' %}">Logout</a>

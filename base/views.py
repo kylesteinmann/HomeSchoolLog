@@ -10,23 +10,23 @@ from .forms import CreateProfileForm, UpdateProfileForm, AddStudentForm
 
 
 class HomeView(LoginRequiredMixin, TemplateView):
+    profile_model = Profile
     template_name = 'home.html'
-    login_url = '/login'  # You can use `login_url = reverse_lazy('login')` if you prefer
+    login_url = '/login'  
 
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return self.handle_no_permission()
         
         try:
-            profile = Profile.objects.get(user=request.user)
+            profile = self.profile_model.objects.get(user=request.user)
         except Profile.DoesNotExist:
-            # Redirect to a different page if the profile does not exist
-            return redirect('base:create_profile')  # Replace with your profile creation view name
+            
+            return redirect('base:create_profile')  
         return super(HomeView, self).dispatch(request, *args, **kwargs)
     def get_context_data(self, **kwargs, ):
         context = super().get_context_data(**kwargs)
-        # Add custom context variables here
-        context['profile_info'] = Profile.objects.get(user=self.request.user)
+        context['profile_info'] = self.profile_model.objects.get(user=self.request.user)
         
         return context
     
@@ -52,7 +52,7 @@ class CreateProfileView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('base:home')  
 
     def dispatch(self, request, *args, **kwargs):
-        if Profile.objects.filter(user=request.user).exists():
+        if self.model.objects.filter(user=request.user).exists():
             return redirect('base:home')  
         return super().dispatch(request, *args, **kwargs)
 
@@ -70,22 +70,17 @@ class CreateProfileView(LoginRequiredMixin, CreateView):
         else:
             return self.form_invalid(form)
 
-from django.views.generic.edit import FormView
-from django.shortcuts import get_object_or_404
-from django.urls import reverse_lazy
-from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import Profile, Student
-from .forms import UpdateProfileForm, AddStudentForm
-
 class ProfileView(LoginRequiredMixin, FormView):
+    profile_model = Profile
+    student_model = Student
     template_name = 'profile.html'
     form_class = UpdateProfileForm
     success_url = reverse_lazy('base:profile')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['profile_info'] = get_object_or_404(Profile, user=self.request.user)
-        context['student_info'] = Student.objects.filter(user=self.request.user)
+        context['profile_info'] = get_object_or_404(self.profile_model, user=self.request.user)
+        context['student_info'] = self.profile_model.objects.filter(user=self.request.user)
         context['add_student_form'] = AddStudentForm()
         context['edit_student_form'] = AddStudentForm()
         return context
@@ -94,7 +89,7 @@ class ProfileView(LoginRequiredMixin, FormView):
         form = self.get_form()
         if 'edit_profile' in request.POST:
             if form.is_valid():
-                instance = Profile.objects.get(user=self.request.user)
+                instance = self.profile_model.objects.get(user=self.request.user)
                 instance.first_name = form.cleaned_data['first_name']
                 instance.last_name = form.cleaned_data['last_name']
                 instance.state = form.cleaned_data['state']
@@ -107,7 +102,7 @@ class ProfileView(LoginRequiredMixin, FormView):
         if 'add_student' in request.POST:
             add_student_form = AddStudentForm(request.POST)
             if add_student_form.is_valid():
-                student = Student(
+                student = self.student_model(
                     first_name=add_student_form.cleaned_data['first_name'],
                     last_name=add_student_form.cleaned_data['last_name'],
                     birthdate=add_student_form.cleaned_data['birthdate'],
@@ -121,7 +116,7 @@ class ProfileView(LoginRequiredMixin, FormView):
         
         if 'update_student' in request.POST:
             student_id = request.POST.get('student_id')
-            student_instance = Student.objects.get(id=student_id)
+            student_instance = self.student_model.objects.get(id=student_id)
             edit_student_form = AddStudentForm(request.POST, instance=student_instance)
             if edit_student_form.is_valid():
                 edit_student_form.save()
@@ -130,4 +125,6 @@ class ProfileView(LoginRequiredMixin, FormView):
                 return self.form_invalid(edit_student_form)
 
         return super().post(request, *args, **kwargs)
+
+
 
