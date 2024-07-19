@@ -4,10 +4,12 @@ from django.db import models
 class Log(models.Model):
   student = models.ForeignKey('base.Student', on_delete=models.CASCADE)
   user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
-  subject = models.ForeignKey('Subject', on_delete=models.CASCADE)
+  subject = models.ForeignKey('Subject', on_delete=models.CASCADE, null=True)
+  required_subject = models.ForeignKey('RequiredSubjects', on_delete=models.CASCADE, null=True)
   time_spent = models.DecimalField(decimal_places=1, max_digits=10)
-  hour_type = models.CharField(max_length=255)
-  discription = models.CharField(max_length=255)
+  hour_type = models.CharField(max_length=255, choices=[('Core', 'Core'), ('Elective', 'Elective')])
+  location = models.CharField(max_length=255, choices=[('Home', 'Home'), ('Away', 'Away')])
+  description = models.CharField(max_length=255)
   date = models.DateField()
 
 
@@ -22,7 +24,7 @@ class Subject(models.Model):
 class RequiredSubjects(models.Model):
   name = models.CharField(max_length=255)
   type = models.CharField(max_length=255, choices=[('Core', 'Core'), ('Elective', 'Elective')])
-  state = models.ForeignKey('base.StateRequirements', on_delete=models.CASCADE)
+  state = models.ForeignKey('base.StateRequirements', on_delete=models.CASCADE, related_name='subjects')
 
   def __str__(self):
     return self.name

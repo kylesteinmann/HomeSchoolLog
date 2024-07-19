@@ -2,38 +2,83 @@ from django.urls import reverse_lazy
 from django.views.generic.edit import FormView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
+
+from base.models import Profile, Student
 from .forms import LogForm, SubjectForm
-from .models import Subject  # Assuming you have a Subject model
+from .models import RequiredSubjects, Subject, Log
 
 class LogsView(LoginRequiredMixin, FormView):
     template_name = 'student_logs.html'
     success_url = reverse_lazy('logger:logs')
     form_class = LogForm
+    profile_model = Profile
+    subject_model = Subject
+    required_subjects_model = RequiredSubjects
+    student_model = Student
+    log_model = Log
+
+    def get_form_kwargs(self):
+        kwargs = super(LogsView, self).get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if 'subject_form' not in context:
             context['subject_form'] = SubjectForm()
         if 'log_form' not in context:
-            context['log_form'] = LogForm()
+            context['log_form'] = self.get_form()
+
+        context['student_info'] = self.student_model.objects.filter(user=self.request.user)
+        context['log_info'] = self.log_model.objects.filter(user=self.request.user)
         return context
 
     def post(self, request, *args, **kwargs):
         subject_form = SubjectForm(request.POST)
-        log_form = LogForm(request.POST)
+        log_form = self.get_form()
 
         if 'subject_form' in request.POST:
             if subject_form.is_valid():
-                # Assuming you have a Subject model
                 Subject.objects.create(
                     name=subject_form.cleaned_data['name'],
-                    type=subject_form.cleaned_data['type']
+                    type=subject_form.cleaned_data['type'],
+                    user=self.request.user
                 )
                 return redirect(self.success_url)
         elif 'log_form' in request.POST:
             if log_form.is_valid():
-                log_form.save()  # Save log form data
-                return redirect(self.success_url)
+                subject_name = log_form.cleaned_data['subject']
+                
+                try:
+                    if subject_name in self.subject_model.objects.filter(user=self.request.user).values_list('name', flat=True):
+                        subject = self.subject_model.objects.get(user=self.request.user, name=subject_name)
+                        required_subject = None
+                    else:
+                        required_subject = self.required_subjects_model.objects.get(name=subject_name)
+                        subject = None
 
-        # If the form is invalid, re-render the page with the forms
+                    hour_type = 'Core' if required_subject else 'Elective'
+                    
+                    log = self.log_model.objects.create(
+                        student=log_form.cleaned_data['student'],
+                        user=self.request.user,
+                        subject=subject,
+                        required_subject=required_subject,
+                        time_spent=log_form.cleaned_data['time_spent'],
+                        hour_type=hour_type,
+                        location=log_form.cleaned_data['location'],
+                        date=log_form.cleaned_data['date'],
+                        description=log_form.cleaned_data['description']
+                    )
+                    log.save()
+
+                    for log in self.log_model.objects.all():
+                        print(log.__dict__)
+
+                    return redirect(self.success_url)
+
+                except self.required_subjects_model.DoesNotExist:
+                    return self.form_invalid(log_form, error_message="The subject does not exist.")
+        
         return render(request, self.template_name, self.get_context_data())
+

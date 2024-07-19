@@ -1,13 +1,11 @@
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.contrib.auth import views as auth_views
-from django.views.generic import TemplateView, FormView, CreateView, View
+from django.views.generic import TemplateView, FormView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.forms import UserCreationForm
 from .models import Profile, Student
 from .forms import CreateProfileForm, UpdateProfileForm, AddStudentForm
-
-
 
 class HomeView(LoginRequiredMixin, TemplateView):
     profile_model = Profile
@@ -80,7 +78,7 @@ class ProfileView(LoginRequiredMixin, FormView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['profile_info'] = get_object_or_404(self.profile_model, user=self.request.user)
-        context['student_info'] = self.profile_model.objects.filter(user=self.request.user)
+        context['student_info'] = self.student_model.objects.filter(user=self.request.user)
         context['add_student_form'] = AddStudentForm()
         context['edit_student_form'] = AddStudentForm()
         return context
@@ -113,7 +111,7 @@ class ProfileView(LoginRequiredMixin, FormView):
                 return self.form_valid(add_student_form)
             else:
                 return self.form_invalid(add_student_form)
-        
+
         if 'update_student' in request.POST:
             student_id = request.POST.get('student_id')
             student_instance = self.student_model.objects.get(id=student_id)

@@ -1,34 +1,126 @@
 {% extends "base_generic.html" %}
-{% load crispy_forms_tags %}
-
+{% load static crispy_forms_tags %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+{% endblock %}
 {% block content %}
-<!-- Button to trigger modal -->
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#subjectModal">
-  Add Subject
-</button>
-
 <div class="container mt-5">
   <div class="row justify-content-center">
-    <div class="col-md-6">
+    <div class="col-12 col-md-8">
       <div class="card">
-        <div class="card-header text-center">
-          <h2>Add Subject</h2>
+        <a class="text-decoration-none" data-bs-toggle="collapse" href="#logFormCollapse" role="button"
+          aria-expanded="false" aria-controls="logFormCollapse">
+          <div class="card-header text-center">
+            <h2 class="h4 h-lg-2">
+              Add to Log
+            </h2>
+          </div>
+        </a>
+        <div id="logFormCollapse" class="collapse">
+          <div class="card-body">
+            <form method="post">
+              {% csrf_token %}
+              <div class="form-group row d-flex align-items-center">
+                <div class="col-10 col-md-11">
+                  {{ log_form.subject|as_crispy_field }}
+                </div>
+                <div class="col-2 col-md-1 p-0">
+                  <a data-bs-toggle="modal" data-bs-target="#subjectModal"
+                    class="text-success d-flex align-items-end justify-content-center pt-3">
+                    <i class="fas fa-plus-circle fa-2x"></i>
+                  </a>
+                </div>
+              </div>
+              <div class="form-group">
+                {{ log_form.time_spent|as_crispy_field }}{{ log_form.location|as_crispy_field }}
+              </div>
+              <div class="form-group">
+                {{ log_form.description|as_crispy_field }}
+              </div>
+              <div class="form-group">
+                {{ log_form.date|as_crispy_field }}
+              </div>
+              <div class="form-group">
+                {{ log_form.student|as_crispy_field }}
+              </div>
+              <div class="text-center mt-4">
+                <button type="submit" name="log_form" class="btn btn-primary">Create</button>
+              </div>
+            </form>
+          </div>
         </div>
-        <div class="card-body">
-          <form method="post">
-            {% csrf_token %}
-            {{ log_form|crispy}}
-            <div class="text-center">
-              <button type="submit" name="log_form" class="btn btn-primary">Create</button>
+      </div>
+
+      <div class="accordion mt-3" id="studentAccordion">
+        {% for student in student_info %}
+        <div class="card">
+          <div class="card-header" id="heading{{ student.id }}">
+            <h2 class="mb-0">
+              <button class="btn btn-link p-0 text-decoration-none w-100 text-start" type="button"
+                data-bs-toggle="collapse" data-bs-target="#dailyLessonPlanCollapse{{ student.id }}"
+                aria-expanded="false" aria-controls="dailyLessonPlanCollapse{{ student.id }}">
+                {{ student.first_name }} {{ student.last_name }}
+              </button>
+            </h2>
+          </div>
+          <div id="dailyLessonPlanCollapse{{ student.id }}" class="collapse" aria-labelledby="heading{{ student.id }}"
+            data-bs-parent="#studentAccordion">
+            <div class="card-body">
+              {% if log_info %}
+              <h2 class="text-center h5 h-lg-2">{{ log_info.0.date|date:'l - F j, Y' }}</h2>
+              <h4 class="text-center mt-3">Daily Lesson Plan</h4>
+              {% endif %}
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th scope="col">Subject</th>
+                    <th scope="col">Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for log in log_info %}
+                  {% if student == log.student %}
+                  <tr>
+                    <td>{{ log.subject }}</td>
+                    <td>{{ log.description }}</td>
+                  </tr>
+                  {% endif %}
+                  {% endfor %}
+                </tbody>
+              </table>
+              {% if log_info %}
+              <h4 class="text-center mt-3">Daily Hours Logged</h4>
+              {% endif %}
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th scope="col">Subject</th>
+                    <th scope="col">Time Spent</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for log in log_info %}
+                  {% if student == log.student %}
+                  <tr>
+                    <td>{{ log.subject }}</td>
+                    <td>{{ log.time_spent }}</td>
+                  </tr>
+                  {% endif %}
+                  {% endfor %}
+                </tbody>
+              </table>
             </div>
-          </form>
+          </div>
         </div>
+        {% endfor %}
       </div>
     </div>
   </div>
 </div>
 
-<!-- Modal -->
+<!-- Modals -->
 <div class="modal fade" id="subjectModal" tabindex="-1" aria-labelledby="subjectModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -48,5 +140,18 @@
     </div>
   </div>
 </div>
+{% endblock %}
 
+{% block extra_javascript %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+<script src="{% static 'js/popper.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script>
+  $(function () {
+    $(".datepicker").datepicker({
+      dateFormat: "yy-mm-dd"
+    });
+  });
+</script>
 {% endblock %}
