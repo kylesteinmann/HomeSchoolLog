@@ -2,6 +2,11 @@ from django.urls import reverse_lazy
 from django.views.generic.edit import FormView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render
+from collections import defaultdict
+
+
+from datetime import timedelta
+from django.utils import timezone
 
 from base.models import Profile, Student
 from .forms import LogForm, SubjectForm
@@ -21,16 +26,39 @@ class LogsView(LoginRequiredMixin, FormView):
         kwargs = super(LogsView, self).get_form_kwargs()
         kwargs['request'] = self.request
         return kwargs
-
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        
+        today = timezone.now().date()
+        days_since_sunday = today.weekday() + 1 
+        most_recent_sunday = today - timedelta(days=days_since_sunday) 
+
+        weekly_logs = self.log_model.objects.filter(
+            user=self.request.user,
+            date__gte=most_recent_sunday,
+            date__lte=most_recent_sunday + timedelta(days=6)
+        ).order_by('date')
+
+        daily_log_info = self.log_model.objects.filter( user=self.request.user,
+            date = today)
+
+        grouped_weekly_logs = defaultdict(list)
+        for log in weekly_logs:
+            grouped_weekly_logs[log.date].append(log)
+
         if 'subject_form' not in context:
             context['subject_form'] = SubjectForm()
+
         if 'log_form' not in context:
             context['log_form'] = self.get_form()
-
-        context['student_info'] = self.student_model.objects.filter(user=self.request.user)
-        context['log_info'] = self.log_model.objects.filter(user=self.request.user)
+        
+        context['daily_log_info'] = daily_log_info
+        context['grouped_weekly_logs'] = dict(grouped_weekly_logs)
+        context['most_recent_sunday'] = most_recent_sunday
+        context['student_info'] = Student.objects.filter(user=self.request.user)
+        
         return context
 
     def post(self, request, *args, **kwargs):

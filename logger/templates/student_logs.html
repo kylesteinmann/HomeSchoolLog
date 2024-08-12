@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 {% endblock %}
+
 {% block content %}
 <div class="container mt-5">
   <div class="row justify-content-center">
@@ -53,68 +54,137 @@
         </div>
       </div>
 
-      <div class="accordion mt-3" id="studentAccordion">
-        {% for student in student_info %}
-        <div class="card">
-          <div class="card-header" id="heading{{ student.id }}">
-            <h2 class="mb-0">
-              <button class="btn btn-link p-0 text-decoration-none w-100 text-start" type="button"
-                data-bs-toggle="collapse" data-bs-target="#dailyLessonPlanCollapse{{ student.id }}"
-                aria-expanded="false" aria-controls="dailyLessonPlanCollapse{{ student.id }}">
-                {{ student.first_name }} {{ student.last_name }}
-              </button>
-            </h2>
-          </div>
-          <div id="dailyLessonPlanCollapse{{ student.id }}" class="collapse" aria-labelledby="heading{{ student.id }}"
-            data-bs-parent="#studentAccordion">
-            <div class="card-body">
-              {% if log_info %}
-              <h2 class="text-center h5 h-lg-2">{{ log_info.0.date|date:'l - F j, Y' }}</h2>
-              <h4 class="text-center mt-3">Daily Lesson Plan</h4>
-              {% endif %}
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th scope="col">Subject</th>
-                    <th scope="col">Description</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for log in log_info %}
-                  {% if student == log.student %}
-                  <tr>
-                    <td>{{ log.subject }}</td>
-                    <td>{{ log.description }}</td>
-                  </tr>
+      <!-- Tabs -->
+      <ul class="nav nav-tabs mt-3" id="logTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <a class="nav-link active" id="daily-log-tab" data-bs-toggle="tab" href="#daily-log" role="tab"
+            aria-controls="daily-log" aria-selected="true">Daily Log</a>
+        </li>
+        <li class="nav-item" role="presentation">
+          <a class="nav-link" id="weekly-log-tab" data-bs-toggle="tab" href="#weekly-log" role="tab"
+            aria-controls="weekly-log" aria-selected="false">Weekly Log</a>
+        </li>
+      </ul>
+      <div class="tab-content mt-3" id="logTabsContent">
+        <!-- Daily Log Tab -->
+        <div class="tab-pane fade show active" id="daily-log" role="tabpanel" aria-labelledby="daily-log-tab">
+          <div class="accordion" id="dailyAccordion">
+            {% for student in student_info %}
+            <div class="card">
+              <div class="card-header" id="headingDaily{{ student.id }}">
+                <h2 class="mb-0">
+                  <button class="btn btn-link p-0 text-decoration-none w-100 text-start" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#dailyLogCollapse{{ student.id }}"
+                    aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+                    aria-controls="dailyLogCollapse{{ student.id }}">
+                    {{ student.first_name }} {{ student.last_name }}
+                  </button>
+                </h2>
+              </div>
+              <div id="dailyLogCollapse{{ student.id }}" class="collapse {% if forloop.first %}show{% endif %}"
+                aria-labelledby="headingDaily{{ student.id }}" data-bs-parent="#dailyAccordion">
+                <div class="card-body">
+                  {% if daily_log_info %}
+                  <h2 class="text-center h5 h-lg-2">{{ today|date:'l - F j, Y' }}</h2>
+                  <h4 class="text-center mt-3">Daily Lesson Plan</h4>
+                  {% else %}
+                  <h4 class="text-center mt-3">Nothing Logged for Today!</h4>
                   {% endif %}
-                  {% endfor %}
-                </tbody>
-              </table>
-              {% if log_info %}
-              <h4 class="text-center mt-3">Daily Hours Logged</h4>
-              {% endif %}
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th scope="col">Subject</th>
-                    <th scope="col">Time Spent</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for log in log_info %}
-                  {% if student == log.student %}
-                  <tr>
-                    <td>{{ log.subject }}</td>
-                    <td>{{ log.time_spent }}</td>
-                  </tr>
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Subject</th>
+                        <th scope="col">Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for log in daily_log_info %}
+                      {% if student == log.student %}
+                      <tr>
+                        <td>{{ log.subject }}</td>
+                        <td>{{ log.description }}</td>
+                      </tr>
+                      {% endif %}
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                  {% if daily_log_info %}
+                  <h4 class="text-center mt-3">Daily Hours Logged</h4>
+                  {% else %}
+                  <h4 class="text-center mt-3">Nothing Logged for Today!</h4>
                   {% endif %}
-                  {% endfor %}
-                </tbody>
-              </table>
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Subject</th>
+                        <th scope="col">Time Spent</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for log in daily_log_info %}
+                      {% if student == log.student %}
+                      <tr>
+                        <td>{{ log.subject }}</td>
+                        <td>{{ log.time_spent }}</td>
+                      </tr>
+                      {% endif %}
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
+            {% endfor %}
           </div>
         </div>
-        {% endfor %}
+
+        <!-- Weekly Log Tab -->
+        <div class="tab-pane fade" id="weekly-log" role="tabpanel" aria-labelledby="weekly-log-tab">
+          <div class="accordion" id="weeklyAccordion">
+            {% for student in student_info %}
+            <div class="card">
+              <div class="card-header" id="headingWeekly{{ student.id }}">
+                <h2 class="mb-0">
+                  <button class="btn btn-link p-0 text-decoration-none w-100 text-start" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#weeklyLogCollapse{{ student.id }}"
+                    aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+                    aria-controls="weeklyLogCollapse{{ student.id }}">
+                    {{ student.first_name }} {{ student.last_name }}
+                  </button>
+                </h2>
+              </div>
+              <div id="weeklyLogCollapse{{ student.id }}" class="collapse {% if forloop.first %}show{% endif %}"
+                aria-labelledby="headingWeekly{{ student.id }}" data-bs-parent="#weeklyAccordion">
+                <div class="card-body">
+                  {% for date, logs in grouped_weekly_logs.items %}
+                  <h4 class="text-center mt-3">{{ date|date:'l - F j, Y' }}</h4>
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Subject</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Time Spent</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for log in logs %}
+                      {% if log.student == student %}
+                      <tr>
+                        <td>{{ log.subject }}</td>
+                        <td>{{ log.description }}</td>
+                        <td>{{ log.time_spent }}</td>
+                      </tr>
+                      {% endif %}
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
       </div>
     </div>
   </div>
