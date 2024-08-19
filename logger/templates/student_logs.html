@@ -102,7 +102,7 @@
                       {% for log in daily_log_info %}
                       {% if student == log.student %}
                       <tr>
-                        <td>{{ log.subject }}</td>
+                        <td>{{ log.subject.name }}</td>
                         <td>{{ log.description }}</td>
                       </tr>
                       {% endif %}
@@ -171,7 +171,11 @@
                       {% for log in logs %}
                       {% if log.student == student %}
                       <tr>
-                        <td>{{ log.subject }}</td>
+                        {% if log.subject %}
+                        <td>{{ log.subject.name }}</td>
+                        {% else %}
+                        <td>{{ log.required_subject.name }}</td>
+                        {% endif %}
                         <td>{{ log.description }}</td>
                         <td>{{ log.time_spent }}</td>
                       </tr>

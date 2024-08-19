@@ -76,7 +76,7 @@ class LogsView(LoginRequiredMixin, FormView):
         elif 'log_form' in request.POST:
             if log_form.is_valid():
                 subject_name = log_form.cleaned_data['subject']
-                print(subject_name)
+
                 try:
                     if subject_name in self.subject_model.objects.filter(user=self.request.user).values_list('name', flat=True):
                         subject = self.subject_model.objects.get(user=self.request.user, name=subject_name)
@@ -86,7 +86,6 @@ class LogsView(LoginRequiredMixin, FormView):
                         subject = None
 
                     hour_type = 'Core' if required_subject else 'Elective'
-                    
                     log = self.log_model.objects.create(
                         student=log_form.cleaned_data['student'],
                         user=self.request.user,
