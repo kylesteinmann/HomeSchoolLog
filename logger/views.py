@@ -57,7 +57,7 @@ class LogsView(LoginRequiredMixin, FormView):
         context['daily_log_info'] = daily_log_info
         context['grouped_weekly_logs'] = dict(grouped_weekly_logs)
         context['most_recent_sunday'] = most_recent_sunday
-        context['student_info'] = Student.objects.filter(user=self.request.user)
+        context['student_info'] = self.student_model.objects.filter(user=self.request.user)
         
         return context
 
@@ -67,7 +67,7 @@ class LogsView(LoginRequiredMixin, FormView):
 
         if 'subject_form' in request.POST:
             if subject_form.is_valid():
-                Subject.objects.create(
+                self.subject_model.objects.create(
                     name=subject_form.cleaned_data['name'],
                     type=subject_form.cleaned_data['type'],
                     user=self.request.user
@@ -76,12 +76,12 @@ class LogsView(LoginRequiredMixin, FormView):
         elif 'log_form' in request.POST:
             if log_form.is_valid():
                 subject_name = log_form.cleaned_data['subject']
-                
+                print(subject_name)
                 try:
                     if subject_name in self.subject_model.objects.filter(user=self.request.user).values_list('name', flat=True):
                         subject = self.subject_model.objects.get(user=self.request.user, name=subject_name)
                         required_subject = None
-                    else:
+                    elif subject_name in self.required_subjects_model.objects.values_list('name', flat=True):
                         required_subject = self.required_subjects_model.objects.get(name=subject_name)
                         subject = None
 
@@ -100,9 +100,7 @@ class LogsView(LoginRequiredMixin, FormView):
                     )
                     log.save()
 
-                    for log in self.log_model.objects.all():
-                        print(log.__dict__)
-
+                    
                     return redirect(self.success_url)
 
                 except self.required_subjects_model.DoesNotExist:
