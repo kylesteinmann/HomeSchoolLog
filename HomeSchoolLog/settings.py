@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 import os
 from pathlib import Path
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,12 +22,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-p-+x!r1__vl)&-yr(bh3o#m_s6xpgim(d!i=*#6d4^(3smq=4q'
+SECRET_KEY = os.environ.get('SECRET_KEY')
+
+# django-insecure-p-+x!r1__vl)&-yr(bh3o#m_s6xpgim(d!i=*#6d4^(3smq=4q
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOST").split(' ')
 
 
 # Application definition
@@ -83,12 +86,16 @@ WSGI_APPLICATION = 'HomeSchoolLog.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+database_url = os.environ.get("DATABASE_URL")
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+DATABASES["default"] = dj_database_url.parse('postgresql://homeschoollogger_user:u2FvuSQbf70qwq4GnT0kyHmHxSLPzNhH@dpg-cr1h82tds78s739sersg-a.oregon-postgres.render.com/homeschoollogger')
 
 
 # Password validation
