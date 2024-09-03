@@ -1,16 +1,13 @@
-from django.urls import reverse_lazy
-from django.views.generic.edit import FormView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect, render
 from collections import defaultdict
-
-
-from datetime import timedelta
+from datetime import datetime, timedelta
 from django.utils import timezone
-
+from django.views.generic.edit import FormView
+from django.shortcuts import redirect, render
+from django.urls import reverse_lazy
+from .models import  Subject, RequiredSubjects,  Log
 from base.models import Profile, Student
 from .forms import LogForm, SubjectForm
-from .models import RequiredSubjects, Subject, Log
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 class LogsView(LoginRequiredMixin, FormView):
     template_name = 'student_logs.html'
@@ -30,19 +27,35 @@ class LogsView(LoginRequiredMixin, FormView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        
         today = timezone.now().date()
-        days_since_sunday = today.weekday() + 1 
-        most_recent_sunday = today - timedelta(days=days_since_sunday) 
+
+        # Get selected day and week from the query parameters
+        selected_day_str = self.request.GET.get('date', today.isoformat())
+        selected_tab = self.request.GET.get('tab', 'daily-log')
+
+        # Parse the date strings into date objects
+        try:
+            selected_day = datetime.strptime(selected_day_str, '%Y-%m-%d').date()
+        except ValueError:
+            selected_day = today  # Default to today if parsing fails
+
+        # Adjust the week based on the selected day
+        selected_week = selected_day - timedelta(days=selected_day.weekday() + 1)
+
+        # Calculate previous and next week based on the selected week
+        previous_week = selected_week - timedelta(days=7)
+        next_week = selected_week + timedelta(days=7)
 
         weekly_logs = self.log_model.objects.filter(
             user=self.request.user,
-            date__gte=most_recent_sunday,
-            date__lte=most_recent_sunday + timedelta(days=6)
+            date__gte=selected_week,
+            date__lte=selected_week + timedelta(days=6)
         ).order_by('date')
 
-        daily_log_info = self.log_model.objects.filter( user=self.request.user,
-            date = today)
+        daily_log_info = self.log_model.objects.filter(
+            user=self.request.user,
+            date=selected_day
+        )
 
         grouped_weekly_logs = defaultdict(list)
         for log in weekly_logs:
@@ -54,11 +67,18 @@ class LogsView(LoginRequiredMixin, FormView):
         if 'log_form' not in context:
             context['log_form'] = self.get_form()
         
-        context['daily_log_info'] = daily_log_info
-        context['grouped_weekly_logs'] = dict(grouped_weekly_logs)
-        context['most_recent_sunday'] = most_recent_sunday
-        context['student_info'] = self.student_model.objects.filter(user=self.request.user)
-        
+        context.update({
+            'daily_log_info': daily_log_info,
+            'grouped_weekly_logs': dict(grouped_weekly_logs),
+            'most_recent_sunday': selected_week,
+            'previous_day': selected_day - timedelta(days=1),
+            'next_day': selected_day + timedelta(days=1),
+            'previous_week': previous_week,
+            'next_week': next_week,
+            'student_info': self.student_model.objects.filter(user=self.request.user),
+            'selected_tab': selected_tab,
+        })
+
         return context
 
     def post(self, request, *args, **kwargs):
@@ -99,11 +119,9 @@ class LogsView(LoginRequiredMixin, FormView):
                     )
                     log.save()
 
-                    
                     return redirect(self.success_url)
 
                 except self.required_subjects_model.DoesNotExist:
                     return self.form_invalid(log_form, error_message="The subject does not exist.")
         
         return render(request, self.template_name, self.get_context_data())
-

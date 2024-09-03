@@ -58,18 +58,25 @@
       <!-- Tabs -->
       <ul class="nav nav-tabs mt-3" id="logTabs" role="tablist">
         <li class="nav-item" role="presentation">
-          <a class="nav-link active" id="daily-log-tab" data-bs-toggle="tab" href="#daily-log" role="tab"
-            aria-controls="daily-log" aria-selected="true">Daily Log</a>
+          <a class="nav-link {% if request.GET.tab != 'weekly-log' %}active{% endif %}" id="daily-log-tab"
+            data-bs-toggle="tab" href="#daily-log" role="tab" aria-controls="daily-log"
+            aria-selected="{% if request.GET.tab != 'weekly-log' %}true{% else %}false{% endif %}">Daily Log</a>
         </li>
         <li class="nav-item" role="presentation">
-          <a class="nav-link" id="weekly-log-tab" data-bs-toggle="tab" href="#weekly-log" role="tab"
-            aria-controls="weekly-log" aria-selected="false">Weekly Log</a>
+          <a class="nav-link {% if request.GET.tab == 'weekly-log' %}active{% endif %}" id="weekly-log-tab"
+            data-bs-toggle="tab" href="#weekly-log" role="tab" aria-controls="weekly-log"
+            aria-selected="{% if request.GET.tab == 'weekly-log' %}true{% else %}false{% endif %}">Weekly Log</a>
         </li>
       </ul>
       <div class="tab-content mt-3" id="logTabsContent">
         <!-- Daily Log Tab -->
-        <div class="tab-pane fade show active" id="daily-log" role="tabpanel" aria-labelledby="daily-log-tab">
-          <div class="accordion" id="dailyAccordion">
+        <div class="tab-pane fade {% if request.GET.tab != 'weekly-log' %}show active{% endif %}" id="daily-log"
+          role="tabpanel" aria-labelledby="daily-log-tab">
+          <div class="d-flex justify-content-center">
+            <input type="text" id="dailyDatePicker" class="form-control datepicker text-center"
+              value="{{ today|date:'Y-m-d' }}">
+          </div>
+          <div class="accordion mt-3" id="dailyAccordion">
             {% for student in student_info %}
             <div class="card">
               <div class="card-header" id="headingDaily{{ student.id }}">
@@ -140,8 +147,13 @@
         </div>
 
         <!-- Weekly Log Tab -->
-        <div class="tab-pane fade" id="weekly-log" role="tabpanel" aria-labelledby="weekly-log-tab">
-          <div class="accordion" id="weeklyAccordion">
+        <div class="tab-pane fade {% if request.GET.tab == 'weekly-log' %}show active{% endif %}" id="weekly-log"
+          role="tabpanel" aria-labelledby="weekly-log-tab">
+          <div class="d-flex justify-content-center">
+            <input type="text" id="weeklyDatePicker" class="form-control datepicker text-center"
+              value="{{ most_recent_sunday|date:'Y-m-d' }}">
+          </div>
+          <div class="accordion mt-3" id="weeklyAccordion">
             {% for student in student_info %}
             <div class="card">
               <div class="card-header" id="headingWeekly{{ student.id }}">
@@ -225,8 +237,26 @@
 <script>
   $(function () {
     $(".datepicker").datepicker({
-      dateFormat: "yy-mm-dd"
+      dateFormat: "yy-mm-dd",
+      onSelect: function (dateText) {
+        const currentUrl = new URL(window.location.href);
+        const activeTab = document.querySelector('.nav-link.active').getAttribute('href').substring(1);
+        currentUrl.searchParams.set('date', dateText);
+        currentUrl.searchParams.set('tab', activeTab);
+        window.location.href = currentUrl.toString();
+      }
     });
+
+    // Activate the correct tab based on URL query
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeTab = urlParams.get('tab');
+    if (activeTab) {
+      $('.nav-link').removeClass('active');
+      $('.tab-pane').removeClass('show active');
+      $(`#${activeTab}-tab`).addClass('active');
+      $(`#${activeTab}`).addClass('show active');
+    }
   });
+
 </script>
 {% endblock %}
