@@ -73,8 +73,11 @@
         <div class="tab-pane fade {% if request.GET.tab != 'weekly-log' %}show active{% endif %}" id="daily-log"
           role="tabpanel" aria-labelledby="daily-log-tab">
           <div class="d-flex justify-content-center">
-            <input type="text" id="dailyDatePicker" class="form-control datepicker text-center"
-              value="{{ today|date:'Y-m-d' }}">
+            <div class="Click to select a date.">
+              <label>Click to select date.</label>
+              <input type="text" id="dailyDatePicker" class="form-control datepicker text-center"
+                value="{{ today|date:'Y-m-d' }}">
+            </div>
           </div>
           <div class="accordion mt-3" id="dailyAccordion">
             {% for student in student_info %}
@@ -150,8 +153,11 @@
         <div class="tab-pane fade {% if request.GET.tab == 'weekly-log' %}show active{% endif %}" id="weekly-log"
           role="tabpanel" aria-labelledby="weekly-log-tab">
           <div class="d-flex justify-content-center">
-            <input type="text" id="weeklyDatePicker" class="form-control datepicker text-center"
-              value="{{ most_recent_sunday|date:'Y-m-d' }}">
+            <div class="column">
+              <label>Click to select date.</label>
+              <input type="text" id="weeklyDatePicker" class="form-control datepicker text-center"
+                value="{{ most_recent_sunday|date:'Y-m-d' }}">
+            </div>
           </div>
           <div class="accordion mt-3" id="weeklyAccordion">
             {% for student in student_info %}
