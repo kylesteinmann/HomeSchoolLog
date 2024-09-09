@@ -39,7 +39,11 @@ class LogsView(LoginRequiredMixin, FormView):
         except ValueError:
             selected_day = today
 
-        selected_week = selected_day - timedelta(days=selected_day.weekday() + 1)
+        if selected_day.weekday() == 6:  # Check if it's Sunday (weekday() returns 6 for Sunday)
+            selected_week = selected_day  # Don't adjust, keep the same day
+        else:
+            selected_week = selected_day - timedelta(days=selected_day.weekday() + 1)  # Adjust to the previous Sunday
+                
         previous_week = selected_week - timedelta(days=7)
         next_week = selected_week + timedelta(days=7)
 
