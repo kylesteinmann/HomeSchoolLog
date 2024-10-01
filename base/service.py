@@ -29,7 +29,7 @@ class DashboardService():
                     elective_hours += log.time_spent
 
             total_hours = core_hours_at_home + core_hours_away + elective_hours
-            days_left = (self.state_requirements.year_end - timezone.now().date()).days
+            days_left = (timezone.now().date() - self.state_requirements.year_end).days
             average_hours_to_complete = (self.state_requirements.total_hours - total_hours) / days_left
             target_hours = self.state_requirements.total_hours
 
