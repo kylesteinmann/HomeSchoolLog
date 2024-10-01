@@ -39,8 +39,8 @@ class DashboardService():
                 'elective_hours': elective_hours,
                 'total_hours': total_hours,
                 'target_hours': target_hours,
-                'days_left': days_left*-1,
-                'average_hours_to_complete': round(average_hours_to_complete, 2)*-1
+                'days_left': days_left,
+                'average_hours_to_complete': round(average_hours_to_complete, 2)
             }
 
         return dashboard_data
