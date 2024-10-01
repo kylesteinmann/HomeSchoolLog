@@ -1,11 +1,17 @@
+from .forms import CreateProfileForm, UpdateProfileForm, AddStudentForm
+from .models import Profile, Student
+from .service import DashboardService
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
-from django.contrib.auth import views as auth_views
 from django.views.generic import TemplateView, FormView, CreateView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.forms import UserCreationForm
-from .models import Profile, Student
-from .forms import CreateProfileForm, UpdateProfileForm, AddStudentForm
+
+
+
+from logger.models import Log
+
 
 class HomeView(LoginRequiredMixin, TemplateView):
     profile_model = Profile
@@ -17,14 +23,22 @@ class HomeView(LoginRequiredMixin, TemplateView):
             return self.handle_no_permission()
         
         try:
-            profile = self.profile_model.objects.get(user=request.user)
+            if not hasattr(self, 'profile_objects'):
+                self.profile_objects = Profile.objects.get(user=request.user)
+
         except Profile.DoesNotExist:
-            
-            return redirect('base:create_profile')  
+            return redirect('base:create_profile')
+        
+        if not hasattr(self, 'dashboard_data'):
+            self.dashboard_data = DashboardService(request).get_dashboard_data()
+
         return super(HomeView, self).dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs, ):
         context = super().get_context_data(**kwargs)
         context['profile_info'] = self.profile_model.objects.get(user=self.request.user)
+        context['dashboard_data'] = self.dashboard_data
+
         
         return context
     

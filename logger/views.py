@@ -99,11 +99,12 @@ class LogsView(LoginRequiredMixin, FormView):
                 subject_name = log_form.cleaned_data['subject']
                 
                 try:
-                    subject = self.subject_model.filter(name=subject_name).first()
-                    required_subject = self.required_subjects_model.filter(name=subject_name).first()
+                    subject = Subject.objects.filter(user=self.request.user, name=subject_name).first()
+                    required_subject = RequiredSubjects.objects.filter(name=subject_name).first()
 
                     if not subject and not required_subject:
-                        return self.form_invalid(log_form, error_message="The subject does not exist.")
+                        log_form.add_error('subject', "The subject does not exist.")
+                        return self.form_invalid(log_form)
 
                     hour_type = 'Core' if required_subject else 'Elective'
 
@@ -123,7 +124,8 @@ class LogsView(LoginRequiredMixin, FormView):
                     return redirect(self.success_url)
 
                 except Exception as e:
-                    return self.form_invalid(log_form, error_message=str(e))
+                    log_form.add_error(None, str(e))
+                    return self.form_invalid(log_form)
 
         return render(request, self.template_name, self.get_context_data())
 

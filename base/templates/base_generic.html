@@ -34,7 +34,7 @@
   {% block extra_javascript %}{% endblock %}
 </head>
 
-<body>
+<body class="d-flex flex-column min-vh-100">
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     {% if user.is_authenticated %}
     <div class="nav-item dropdown">
@@ -54,7 +54,7 @@
       </div>
     </div>
     {% endif %}
-    <a class="navbar-brand" href="{% url 'base:home' %}">Home School Logger</a>
+    <a class="navbar-brand {% if not request.user.is_authenticated %}ps-3{% endif %}" href="{% url 'base:home' %}">Home School Logger</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
       aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -63,7 +63,7 @@
 
     <div class="collapse navbar-collapse d-flex justify-content-end align-items-center" id="navbarNav">
       {% if user.is_authenticated and profile_info %}
-      <p class="nav-item m-0">
+      <p class="nav-item m-0 pe-3">
         Welcome, {{profile_info.first_name}} {{profile_info.last_name}}!
       </p>
       {% endif %}
