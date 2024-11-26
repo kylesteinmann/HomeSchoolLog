@@ -42,7 +42,7 @@ ENV/
 .DS_Store
 
 # Project specific
-homeschoollogger/
+homeschoollogger
 *.pyc
 migrations/
 !migrations/__init__.py
